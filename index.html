@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Weather</title>
+  <meta name="description" content="A clean, minimal weather app.">
+  <meta name="theme-color" content="#F4F6F9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0F14" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app">
+    <nav class="topbar">
+      <button class="icon-btn" id="btn-places" aria-label="Places">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+      </button>
+      <div class="dots" id="dots" aria-hidden="true"></div>
+      <button class="icon-btn" id="btn-radar" aria-label="Radar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4zM9 4v13.5M15 6.5V20"/></svg>
+      </button>
+    </nav>
+    <main class="pager" id="pager"></main>
+  </div>
+
+  <!-- Places -->
+  <dialog class="sheet" id="sheet-places" aria-labelledby="places-title">
+    <div class="sheet-head">
+      <h2 id="places-title">Places</h2>
+      <button class="icon-btn" id="btn-settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+      <button class="icon-btn" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="search-input" type="search" placeholder="Search city or ZIP code" autocomplete="off" enterkeyhint="search" aria-label="Search city or ZIP code">
+    </div>
+    <ul class="list" id="search-results" hidden></ul>
+    <div id="places-lists">
+      <ul class="list" id="gps-list"></ul>
+      <ul class="list" id="saved-list"></ul>
+      <p class="hint" id="places-hint"></p>
+    </div>
+  </dialog>
+
+  <!-- Settings -->
+  <dialog class="sheet" id="sheet-settings" aria-labelledby="settings-title">
+    <div class="sheet-head">
+      <h2 id="settings-title">Settings</h2>
+      <button class="icon-btn" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="settings">
+      <fieldset class="setting">
+        <legend>Units</legend>
+        <div class="segmented">
+          <label><input type="radio" name="units" value="imperial"><span>°F, mph, in</span></label>
+          <label><input type="radio" name="units" value="metric"><span>°C, km/h, mm</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="setting">
+        <legend>Appearance</legend>
+        <div class="segmented">
+          <label><input type="radio" name="theme" value="system"><span>System</span></label>
+          <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+          <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+        </div>
+      </fieldset>
+      <label class="setting toggle">
+        <span>
+          <strong>Use my location</strong>
+          <small>Show weather where you are as the first page</small>
+        </span>
+        <input type="checkbox" id="set-gps" role="switch">
+      </label>
+      <p class="credits">
+        Forecasts and air quality by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.
+        Alerts from the <a href="https://www.weather.gov/" target="_blank" rel="noopener">National Weather Service</a>.
+        Radar by <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a>.
+        Maps © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>.
+      </p>
+    </div>
+  </dialog>
+
+  <!-- Alerts -->
+  <dialog class="sheet" id="sheet-alerts" aria-labelledby="alerts-title">
+    <div class="sheet-head">
+      <h2 id="alerts-title">Weather alerts</h2>
+      <button class="icon-btn" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div id="alerts-body" class="alerts-body"></div>
+  </dialog>
+
+  <!-- Radar -->
+  <dialog class="sheet radar-sheet" id="sheet-radar" aria-label="Radar">
+    <div id="radar-map" class="radar-map"></div>
+    <button class="icon-btn radar-close" data-close aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="radar-controls">
+      <button class="icon-btn" id="radar-play" aria-label="Pause">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-pause"><path d="M8 5v14M16 5v14"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="i-play"><path d="M7 5l12 7-12 7z"/></svg>
+      </button>
+      <input type="range" id="radar-slider" min="0" max="0" value="0" aria-label="Radar time">
+      <span id="radar-time" class="radar-time">--</span>
+    </div>
+    <p class="radar-msg" id="radar-msg" hidden></p>
+  </dialog>
+
+  <script src="vendor/leaflet/leaflet.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
